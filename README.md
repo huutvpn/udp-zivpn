@@ -1,45 +1,83 @@
-# ZiVPN Telegram Bot
+# ✅ ZiVPN Telegram Bot – Panduan Instalasi
 
-Bot Telegram otomatis untuk membuat akun ZiVPN + sistem saldo + topup QRIS.
+## ✅ 1. Masuk root & bersihkan folder lama
 
-## Cara Install di VPS
-
-Login sebagai root lalu jalankan:
-
+```bash
 cd /root
 rm -rf udp-zivpn
+```
+
+---
+
+## ✅ 2. Clone repository
+
+```bash
 git clone https://github.com/huutvpn/udp-zivpn.git
 cd udp-zivpn
 ls
+```
 
-Pastikan file berikut ada:
+WAJIB muncul file berikut:
 
 bot.py
 config.py
 requirements.txt
 qris.jpg
 
-## Install Dependencies
+Kalau file belum ada → berarti repo GitHub belum ke-update.
 
+---
+
+## ✅ 3. Install Python module
+
+```bash
 pip3 install -r requirements.txt
+```
 
-## Menjalankan Bot
+---
 
+## ✅ 4. Jalankan bot
+
+```bash
 python3 bot.py
+```
 
-Jika berhasil, bot akan aktif tanpa error.
+Kalau benar → bot langsung online & tidak ada error merah.
 
-## Konfigurasi
+---
 
-Edit file config.py
+## ⚠️ Jika muncul error
 
-BOT_TOKEN = "ISI_TOKEN"
-ADMIN_ID = 123456789
+❌ requirements.txt not found  
+Berarti kamu belum masuk folder repo
 
-## Fitur
+```bash
+cd /root/udp-zivpn
+ls
+```
 
-- Create akun otomatis
-- Sistem saldo user
-- Topup QRIS
-- Admin bypass saldo
-- Multi server support
+❌ bot.py not found  
+Artinya kamu menjalankan command di folder yang salah
+
+```bash
+pwd
+```
+
+Harusnya:
+
+/root/udp-zivpn
+
+---
+
+## ✅ Tips Anti Error
+
+Jalankan full command ini:
+
+```bash
+cd /root
+rm -rf udp-zivpn
+git clone https://github.com/huutvpn/udp-zivpn.git
+cd udp-zivpn
+pip3 install -r requirements.txt
+python3 bot.py
+```
