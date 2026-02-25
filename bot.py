@@ -94,7 +94,7 @@ def isi_saldo(msg):
     save_db(db)
 
     bot.send_message(admin_chat, f"Saldo user {target_uid} +{nominal}")
-    bot.send_message(int(target_uid), f"✅ TopUp berhasil\nSaldo: Rp {nominal}")
+    bot.send_message(int(target_uid), f"✅ TopUp berhasil\nSaldo: Rp {db[target_uid]['saldo']}")
 
 def process_create(msg):
     db = load_db()
@@ -108,7 +108,7 @@ def process_create(msg):
     harga = PRICE
 
     # ADMIN BYPASS SALDO
-    if uid != str(ADMIN_ID):
+    if uid != ADMIN_ID:
         if db[uid]["saldo"] < harga:
             return bot.send_message(msg.chat.id, "Saldo tidak cukup")
 
