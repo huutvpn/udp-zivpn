@@ -1,3 +1,4 @@
+
 import telebot
 import paramiko
 import time
@@ -13,12 +14,15 @@ def run_menu(choice):
         ssh.connect(VPS_HOST, port=VPS_PORT, username=VPS_USER, password=VPS_PASSWORD)
 
         channel = ssh.invoke_shell()
-        channel.send("bash /usr/local/bin/zi.sh\n")
+        channel.send("zivpn\n")
         time.sleep(1)
-        channel.send(choice + "\n")
-        time.sleep(2)
 
+        if choice:
+            channel.send(choice + "\n")
+
+        time.sleep(2)
         output = channel.recv(9999).decode()
+
         ssh.close()
         return output
     except Exception as e:
@@ -49,7 +53,6 @@ Silakan pilih menu:
 @bot.callback_query_handler(func=lambda call: True)
 def cb(call):
     if call.data == "server":
-        hasil = run_menu("")
         bot.send_message(call.message.chat.id, "✅ Server OK")
     else:
         hasil = run_menu(call.data)
