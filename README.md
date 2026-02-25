@@ -1,7 +1,5 @@
-ZiVPN Telegram Bot
-
-Upload qris.jpg ke folder bot.
-
+ZiVPN Bot Admin Bypass
+Upload qris.jpg ke folder bot
 Run:
 pip3 install -r requirements.txt
 python3 bot.py

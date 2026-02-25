@@ -6,7 +6,6 @@ from config import *
 
 bot = telebot.TeleBot(BOT_TOKEN)
 DB_FILE = "users.json"
-
 pending_topup = {}
 
 def load_db():
@@ -61,9 +60,7 @@ def handle_bukti(msg):
     uid = str(msg.from_user.id)
 
     markup = InlineKeyboardMarkup()
-    markup.add(
-        InlineKeyboardButton("✅ Approve", callback_data=f"approve|{uid}")
-    )
+    markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"approve|{uid}"))
 
     bot.send_photo(
         ADMIN_ID,
@@ -108,16 +105,17 @@ def process_create(msg):
     except:
         return bot.send_message(msg.chat.id, "Format salah")
 
-    harga = 10000
+    harga = PRICE
 
-    if db[uid]["saldo"] < harga:
-        return bot.send_message(msg.chat.id, "Saldo tidak cukup")
+    # ADMIN BYPASS SALDO
+    if uid != str(ADMIN_ID):
+        if db[uid]["saldo"] < harga:
+            return bot.send_message(msg.chat.id, "Saldo tidak cukup")
+
+        db[uid]["saldo"] -= harga
+        save_db(db)
 
     hasil = subprocess.getoutput(f"addzivpn {user} {pwd} {dur}")
-
-    db[uid]["saldo"] -= harga
-    save_db(db)
-
     bot.send_message(msg.chat.id, hasil)
 
 print("Bot aktif...")
