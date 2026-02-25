@@ -1,62 +1,40 @@
-
 import telebot
-import paramiko
-import time
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+import subprocess
 from config import *
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-def run_menu(choice):
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(VPS_HOST, port=VPS_PORT, username=VPS_USER, password=VPS_PASSWORD)
-
-        channel = ssh.invoke_shell()
-        channel.send("zivpn\n")
-        time.sleep(1)
-
-        if choice:
-            channel.send(choice + "\n")
-
-        time.sleep(2)
-        output = channel.recv(9999).decode()
-
-        ssh.close()
-        return output
-    except Exception as e:
-        return str(e)
-
-def menu():
-    m = InlineKeyboardMarkup(row_width=2)
-    m.add(
-        InlineKeyboardButton("➕ Buat Akun", callback_data="1"),
-        InlineKeyboardButton("⏳ Trial Akun", callback_data="2"),
-        InlineKeyboardButton("📊 Cek Server", callback_data="server"),
-    )
-    return m
+user_data = {}
 
 @bot.message_handler(commands=['start'])
 def start(msg):
-    teks = f"""
-👋 Hai, Member!
+    bot.send_message(msg.chat.id, "👋 Selamat datang\nKirim /buat untuk membuat akun")
 
-🆔 ID: {msg.from_user.id}
-💰 Saldo: Rp 0
-📌 Status: User
+@bot.message_handler(commands=['buat'])
+def buat(msg):
+    user_data[msg.chat.id] = {}
+    bot.send_message(msg.chat.id, "Masukkan Username:")
+    bot.register_next_step_handler(msg, get_username)
 
-Silakan pilih menu:
-"""
-    bot.send_message(msg.chat.id, teks, reply_markup=menu())
+def get_username(msg):
+    user_data[msg.chat.id]['username'] = msg.text
+    bot.send_message(msg.chat.id, "Masukkan Password:")
+    bot.register_next_step_handler(msg, get_password)
 
-@bot.callback_query_handler(func=lambda call: True)
-def cb(call):
-    if call.data == "server":
-        bot.send_message(call.message.chat.id, "✅ Server OK")
-    else:
-        hasil = run_menu(call.data)
-        bot.send_message(call.message.chat.id, f"Result:\n{hasil}")
+def get_password(msg):
+    user_data[msg.chat.id]['password'] = msg.text
+    bot.send_message(msg.chat.id, "Masukkan Durasi (hari):")
+    bot.register_next_step_handler(msg, get_duration)
+
+def get_duration(msg):
+    username = user_data[msg.chat.id]['username']
+    password = user_data[msg.chat.id]['password']
+    duration = msg.text
+
+    cmd = f"addzivpn {username} {password} {duration}"
+    result = subprocess.getoutput(cmd)
+
+    bot.send_message(msg.chat.id, result)
 
 print("Bot aktif...")
 bot.infinity_polling()
