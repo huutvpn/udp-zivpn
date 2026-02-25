@@ -3,7 +3,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 import subprocess
 
-TOKEN = "ISI_TOKEN_KAMU"
+TOKEN = "6778612908:AAG_7ZJhiWXPj-OGoytocB3b1r5AKuyHCmI"
 ADMINS = [6479897007]  # tambah ID admin di sini
 
 MENU_CMD = "/usr/local/bin/zivpn-menu.sh"
