@@ -5,7 +5,7 @@ import subprocess
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import *
 
-bot = telebot.TeleBot(BOT_TOKEN)
+bot = telebot.TeleBot(6778612908:AAG_7ZJhiWXPj-OGoytocB3b1r5AKuyHCmI)
 DB_FILE = "users.json"
 
 user_state = {}
@@ -92,7 +92,7 @@ def step_dur(msg):
 
     harga = PRICE
 
-    if uid != str(ADMIN_ID):
+    if uid != str(ADMIN_ID):6479897007
         saldo = db.get(uid, {}).get("saldo", 0)
         if saldo < harga:
             return bot.send_message(msg.chat.id, "Saldo tidak cukup")
