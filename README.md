@@ -1,7 +1,8 @@
-ZiVPN Telegram Bot
+ZiVPN Super Seller Bot
 
-Commands:
-/start - Open menu
-
-Format create:
-user pass durasi
+Features:
+- Multi Server SG
+- Harga selectable
+- Reseller discount
+- Limit IP support
+- Admin unlimited
