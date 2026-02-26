@@ -1,8 +1,8 @@
 
 import json
-import time
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+import subprocess
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 CONFIG_FILE = "bot_config.json"
 
@@ -10,125 +10,71 @@ def load_config():
     with open(CONFIG_FILE) as f:
         return json.load(f)
 
-def load_users(db_path):
-    try:
-        with open(db_path) as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_users(db_path, data):
-    with open(db_path, "w") as f:
-        json.dump(data, f, indent=2)
-
 config = load_config()
-USER_DB = config["USER_DB"]
+TOKEN = config["TOKEN"]
+ADMIN_ID = config["ADMIN_ID"]
 
 user_state = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("➕ Create Account", callback_data="create")],
-        [InlineKeyboardButton("❌ Delete Account", callback_data="delete")],
-        [InlineKeyboardButton("👤 Check Account", callback_data="check")],
-        [InlineKeyboardButton("📋 List Accounts", callback_data="list")]
-    ]
-    await update.message.reply_text("Menu Bot ZIVPN", reply_markup=InlineKeyboardMarkup(keyboard))
+    keyboard = [["Create"], ["Delete"], ["Check"]]
+    await update.message.reply_text(
+        "Menu Bot ZIVPN",
+        reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+    )
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    chat_id = query.message.chat_id
+async def handle(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    user_id = update.message.from_user.id
 
-    if query.data == "create":
-        user_state[chat_id] = {"step": "username"}
-        await query.message.reply_text("Masukkan username:")
-
-    elif query.data == "delete":
-        users = load_users(USER_DB)
-        keyboard = [[InlineKeyboardButton(u["username"], callback_data=f"del_{u['username']}")] for u in users]
-        await query.message.reply_text("Pilih user:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-    elif query.data.startswith("del_"):
-        username = query.data.replace("del_", "")
-        users = load_users(USER_DB)
-        users = [u for u in users if u["username"] != username]
-        save_users(USER_DB, users)
-        await query.message.reply_text(f"User {username} dihapus.")
-
-    elif query.data == "list":
-        users = load_users(USER_DB)
-        text = "\\n".join([f"{u['username']} | IP Limit: {u.get('ip_limit', 1)}" for u in users]) or "Tidak ada akun."
-        await query.message.reply_text(text)
-
-    elif query.data == "check":
-        users = load_users(USER_DB)
-        keyboard = [[InlineKeyboardButton(u["username"], callback_data=f"chk_{u['username']}")] for u in users]
-        await query.message.reply_text("Pilih user:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-    elif query.data.startswith("chk_"):
-        username = query.data.replace("chk_", "")
-        users = load_users(USER_DB)
-        user = next((u for u in users if u["username"] == username), None)
-        if not user:
-            await query.message.reply_text("User tidak ditemukan.")
-            return
-
-        now = int(time.time())
-        remaining = user["expiry_timestamp"] - now
-        days = remaining // 86400
-        text = (
-            f"User: {user['username']}\\n"
-            f"Limit IP: {user.get('ip_limit', 1)}\\n"
-            f"Sisa: {days} hari"
-        )
-        await query.message.reply_text(text)
-
-async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
-    if chat_id not in user_state:
+    if text == "Create":
+        user_state[user_id] = {"step": "username"}
+        await update.message.reply_text("Masukkan username:")
         return
 
-    state = user_state[chat_id]
+    if user_id in user_state:
+        state = user_state[user_id]
 
-    if state["step"] == "username":
-        state["username"] = update.message.text
-        state["step"] = "password"
-        await update.message.reply_text("Masukkan password:")
+        if state["step"] == "username":
+            state["username"] = text
+            state["step"] = "password"
+            await update.message.reply_text("Masukkan password:")
+            return
 
-    elif state["step"] == "password":
-        state["password"] = update.message.text
-        state["step"] = "duration"
-        await update.message.reply_text("Durasi (hari):")
+        if state["step"] == "password":
+            state["password"] = text
+            state["step"] = "duration"
+            await update.message.reply_text("Durasi (hari):")
+            return
 
-    elif state["step"] == "duration":
-        state["duration"] = int(update.message.text)
-        state["step"] = "limit"
-        await update.message.reply_text("Limit IP:")
+        if state["step"] == "duration":
+            state["duration"] = text
+            state["step"] = "limit"
+            await update.message.reply_text("Limit IP:")
+            return
 
-    elif state["step"] == "limit":
-        state["limit"] = int(update.message.text)
+        if state["step"] == "limit":
+            state["limit"] = text
 
-        users = load_users(USER_DB)
-        expiry = int(time.time()) + state["duration"] * 86400
+            try:
+                subprocess.run([
+                    "bash", "zi.sh",
+                    state["username"],
+                    state["password"],
+                    state["duration"],
+                    state["limit"]
+                ])
+                await update.message.reply_text("Akun berhasil dibuat di server")
+            except Exception as e:
+                await update.message.reply_text(f"ERROR: {e}")
 
-        users.append({
-            "username": state["username"],
-            "password": state["password"],
-            "expiry_timestamp": expiry,
-            "ip_limit": state["limit"]
-        })
+            del user_state[user_id]
+            return
 
-        save_users(USER_DB, users)
-
-        await update.message.reply_text("Akun berhasil dibuat.")
-        del user_state[chat_id]
-
-def main():
-    app = ApplicationBuilder().token(load_config()["BOT_TOKEN"]).build()
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle))
     print("Bot running...")
     app.run_polling()
 

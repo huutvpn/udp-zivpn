@@ -1,5 +1,5 @@
-
 {
-  "BOT_TOKEN": "ISI_TOKEN_BOT_KAMU",
-  "USER_DB": "/etc/zivpn/users.json"
+  "TOKEN": "ISI_TOKEN_KAMU",
+  "ADMIN_ID": "6479897007",
+  "BOT_TOKEN": "6778612908:AAF8rI1l0k6ElZ7SVbcTjwk86EVdRhpjTb8"
 }
